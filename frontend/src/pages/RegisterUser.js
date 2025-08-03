@@ -1,42 +1,51 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
+import {
+  Box,
+  Typography,
+  Button,
+  Stack,
+  TextField,
+  Alert,
+  Link
+} from '@mui/material';
 
 const RegisterUser = () => {
   const [username, setUsername] = useState('');
   const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setMessage('');
+    setError('');
     
-    axios.post('http://localhost:5000/api/users', { username })
+    // UPDATED URL
+    axios.post(`${process.env.REACT_APP_API_URL}/api/users`, { username })
       .then(res => {
         setMessage(res.data.message);
-        setUsername(''); // Clear input after success
+        setUsername('');
       })
       .catch(err => {
-        setMessage(err.response?.data?.message || 'An error occurred.');
+        setError(err.response?.data?.message || 'An error occurred.');
       });
   };
 
   return (
-    <div>
-      <h2>Create New User</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Enter new username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-        />
-        <button type="submit">Create User</button>
-      </form>
-      {message && <p>{message}</p>}
-      <br />
-      <Link to="/">Back to Home</Link>
-    </div>
+    <Stack as="form" onSubmit={handleSubmit} spacing={2} sx={{ width: '100%', maxWidth: '400px' }}>
+      <Typography variant="h4" component="h1" align="center">Create New User</Typography>
+      {message && <Alert severity="success">{message}</Alert>}
+      {error && <Alert severity="error">{error}</Alert>}
+      <TextField
+        label="Enter new username"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+        required
+      />
+      <Button type="submit" variant="contained">Create User</Button>
+      <Link component={RouterLink} to="/" align="center">Back to Home</Link>
+    </Stack>
   );
 };
 

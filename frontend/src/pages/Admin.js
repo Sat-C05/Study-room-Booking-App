@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link as RouterLink } from 'react-router-dom';
-import {
-  Box,
-  Typography,
-  Button,
-  Stack,
-  TextField,
+import { 
+  Box, 
+  Typography, 
+  Button, 
+  Stack, 
+  TextField, 
   Alert,
   Link,
   Divider
@@ -15,12 +15,11 @@ import {
 const Admin = () => {
   const [rooms, setRooms] = useState([]);
   const [users, setUsers] = useState([]);
-  const [bookings, setBookings] = useState([]); // New state for bookings
+  const [bookings, setBookings] = useState([]);
   const [roomFormData, setRoomFormData] = useState({ name: '', location: '', capacity: '' });
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  // Fetch all data when the component loads
   useEffect(() => {
     fetchRooms();
     fetchUsers();
@@ -32,30 +31,32 @@ const Admin = () => {
     setError('');
   };
 
-  // --- Data Fetching Functions ---
   const fetchRooms = () => {
-    axios.get('http://localhost:5000/api/rooms')
+    // UPDATED URL
+    axios.get(`${process.env.REACT_APP_API_URL}/api/rooms`)
       .then(res => setRooms(res.data))
       .catch(() => setError("Could not fetch rooms."));
   };
 
   const fetchUsers = () => {
-    axios.get('http://localhost:5000/api/users')
+    // UPDATED URL
+    axios.get(`${process.env.REACT_APP_API_URL}/api/users`)
       .then(res => setUsers(res.data))
       .catch(() => setError("Could not fetch users."));
   };
 
   const fetchBookings = () => {
-    axios.get('http://localhost:5000/api/bookings')
+    // UPDATED URL
+    axios.get(`${process.env.REACT_APP_API_URL}/api/bookings`)
       .then(res => setBookings(res.data))
       .catch(() => setError("Could not fetch bookings."));
   };
 
-  // --- Handler Functions ---
   const handleRoomCreate = (e) => {
     e.preventDefault();
     clearMessages();
-    axios.post('http://localhost:5000/api/rooms', roomFormData)
+    // UPDATED URL
+    axios.post(`${process.env.REACT_APP_API_URL}/api/rooms`, roomFormData)
       .then(() => {
         setMessage(`Room "${roomFormData.name}" created!`);
         setRoomFormData({ name: '', location: '', capacity: '' });
@@ -66,7 +67,8 @@ const Admin = () => {
 
   const handleRoomDelete = (roomId) => {
     clearMessages();
-    axios.delete(`http://localhost:5000/api/rooms/${roomId}`)
+    // UPDATED URL
+    axios.delete(`${process.env.REACT_APP_API_URL}/api/rooms/${roomId}`)
       .then(() => {
         setMessage('Room deleted!');
         fetchRooms();
@@ -76,7 +78,8 @@ const Admin = () => {
 
   const handleUserDelete = (userId) => {
     clearMessages();
-    axios.delete(`http://localhost:5000/api/users/${userId}`)
+    // UPDATED URL
+    axios.delete(`${process.env.REACT_APP_API_URL}/api/users/${userId}`)
       .then(() => {
         setMessage('User deleted!');
         fetchUsers();
@@ -86,34 +89,32 @@ const Admin = () => {
 
   const handleBookingDelete = (bookingId) => {
     clearMessages();
-    axios.delete(`http://localhost:5000/api/bookings/${bookingId}`)
+    // UPDATED URL
+    axios.delete(`${process.env.REACT_APP_API_URL}/api/bookings/${bookingId}`)
       .then(() => {
         setMessage('Booking deleted!');
-        fetchBookings(); // Refresh the list of bookings
+        fetchBookings();
       })
       .catch(() => setError('Error deleting booking.'));
   };
 
+  const handleRoomChange = (e) => {
+    setRoomFormData({ ...roomFormData, [e.target.name]: e.target.value });
+  };
 
   return (
     <Stack spacing={4} sx={{ width: '100%' }}>
-      <Typography variant="h3" component="h1" align="center">
-        Admin Panel
-      </Typography>
-
+      <Typography variant="h3" component="h1" align="center">Admin Panel</Typography>
       {message && <Alert severity="success" onClose={clearMessages}>{message}</Alert>}
       {error && <Alert severity="error" onClose={clearMessages}>{error}</Alert>}
-      
       <Link component={RouterLink} to="/" align="center">Back to Home</Link>
       <Divider />
-
-      {/* Section for Managing Rooms */}
       <Box>
         <Typography variant="h5" component="h2" gutterBottom>Manage Rooms</Typography>
         <Stack as="form" onSubmit={handleRoomCreate} direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 2 }}>
-          <TextField size="small" name="name" label="Room Name" value={roomFormData.name} onChange={(e) => setRoomFormData({ ...roomFormData, name: e.target.value })} required />
-          <TextField size="small" name="location" label="Location" value={roomFormData.location} onChange={(e) => setRoomFormData({ ...roomFormData, location: e.target.value })} />
-          <TextField size="small" name="capacity" label="Capacity" type="number" value={roomFormData.capacity} onChange={(e) => setRoomFormData({ ...roomFormData, capacity: e.target.value })} />
+          <TextField size="small" name="name" label="Room Name" value={roomFormData.name} onChange={handleRoomChange} required />
+          <TextField size="small" name="location" label="Location" value={roomFormData.location} onChange={handleRoomChange} />
+          <TextField size="small" name="capacity" label="Capacity" type="number" value={roomFormData.capacity} onChange={handleRoomChange} />
           <Button type="submit" variant="contained" color="primary">Create Room</Button>
         </Stack>
         <Stack spacing={1}>
@@ -125,10 +126,7 @@ const Admin = () => {
           ))}
         </Stack>
       </Box>
-
       <Divider />
-
-      {/* Section for Managing Users */}
       <Box>
         <Typography variant="h5" component="h2" gutterBottom>Manage Users</Typography>
         <Stack spacing={1}>
@@ -140,10 +138,7 @@ const Admin = () => {
           ))}
         </Stack>
       </Box>
-
       <Divider />
-
-      {/* NEW Section for Managing Bookings */}
       <Box>
         <Typography variant="h5" component="h2" gutterBottom>Manage Bookings</Typography>
         <Stack spacing={1}>

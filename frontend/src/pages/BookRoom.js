@@ -1,16 +1,26 @@
 import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link as RouterLink } from 'react-router-dom';
 import axios from 'axios';
+import {
+  Box,
+  Typography,
+  Button,
+  Stack,
+  TextField,
+  Alert,
+  Link
+} from '@mui/material';
 
 const BookRoom = () => {
   const { id } = useParams();
   const [formData, setFormData] = useState({
-    username: '', // Changed from 'name'
+    username: '',
     date: '',
     startTime: '',
     endTime: ''
   });
   const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -19,39 +29,31 @@ const BookRoom = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     setMessage('');
+    setError('');
 
-    axios.post('http://localhost:5000/api/bookings', { ...formData, room: id })
+    // UPDATED URL
+    axios.post(`${process.env.REACT_APP_API_URL}/api/bookings`, { ...formData, room: id })
       .then(res => {
         setMessage(res.data.message);
+        setFormData({ username: '', date: '', startTime: '', endTime: '' });
       })
       .catch(err => {
-        setMessage(err.response?.data?.message || 'An unexpected error occurred.');
+        setError(err.response?.data?.message || 'An unexpected error occurred.');
       });
   };
 
   return (
-    <div>
-      <h2>Book This Room</h2>
-      <form onSubmit={handleSubmit}>
-        {/* Changed this input to ask for 'username' */}
-        <input 
-          type="text" 
-          name="username" 
-          placeholder="Your Username" 
-          value={formData.username} 
-          onChange={handleChange} 
-          required 
-        />
-        <input type="date" name="date" value={formData.date} onChange={handleChange} required />
-        <input type="time" name="startTime" placeholder="Start Time" value={formData.startTime} onChange={handleChange} required />
-        <input type="time" name="endTime" placeholder="End Time" value={formData.endTime} onChange={handleChange} required />
-        <button type="submit">Confirm Booking</button>
-      </form>
-
-      {message && <p>{message}</p>}
-      
-      <Link to="/">Back to Home</Link>
-    </div>
+    <Stack as="form" onSubmit={handleSubmit} spacing={2} sx={{ width: '100%', maxWidth: '400px' }}>
+      <Typography variant="h4" component="h1" align="center">Book This Room</Typography>
+      {message && <Alert severity="success">{message}</Alert>}
+      {error && <Alert severity="error">{error}</Alert>}
+      <TextField label="Your Username" name="username" value={formData.username} onChange={handleChange} required />
+      <TextField type="date" name="date" value={formData.date} onChange={handleChange} required InputLabelProps={{ shrink: true }} />
+      <TextField label="Start Time" type="time" name="startTime" value={formData.startTime} onChange={handleChange} required InputLabelProps={{ shrink: true }} />
+      <TextField label="End Time" type="time" name="endTime" value={formData.endTime} onChange={handleChange} required InputLabelProps={{ shrink: true }} />
+      <Button type="submit" variant="contained" color="primary">Confirm Booking</Button>
+      <Link component={RouterLink} to="/" align="center">Back to Home</Link>
+    </Stack>
   );
 };
 
