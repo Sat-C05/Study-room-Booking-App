@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Link as RouterLink } from 'react-router-dom';
 import { Calendar, momentLocalizer, Views } from 'react-big-calendar';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import { Box, Typography, Link, Alert, Paper, Stack, Divider } from '@mui/material';
+import { Box, Typography, Alert, Paper, Stack, Divider } from '@mui/material';
 
 const localizer = momentLocalizer(moment);
 

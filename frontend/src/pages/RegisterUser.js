@@ -10,13 +10,13 @@ import {
   Alert,
   Link,
   Paper,
-  Avatar,
-  Box
+  Avatar
 } from '@mui/material';
-import PersonAddIcon from '@mui/icons-material/PersonAdd'; // Register icon
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
 
 const RegisterUser = () => {
-  const [formData, setFormData] = useState({ username: '', password: '' });
+  // Add email to the form state
+  const [formData, setFormData] = useState({ username: '', email: '', password: '' });
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
@@ -32,7 +32,8 @@ const RegisterUser = () => {
     axios.post(`${process.env.REACT_APP_API_URL}/api/users/register`, formData)
       .then(res => {
         setMessage(res.data.message);
-        setFormData({ username: '', password: '' });
+        // Clear all fields on success
+        setFormData({ username: '', email: '', password: '' });
       })
       .catch(err => {
         setError(err.response?.data?.message || 'An error occurred.');
@@ -52,15 +53,12 @@ const RegisterUser = () => {
           alignItems: 'center',
         }}
       >
-        {/* --- New Header Section --- */}
         <Avatar sx={{ m: 1, bgcolor: 'accent.main' }}>
           <PersonAddIcon />
         </Avatar>
         <Typography component="h1" variant="h5">
           Register
         </Typography>
-        {/* ------------------------- */}
-
         <Stack as="form" onSubmit={handleSubmit} spacing={2} sx={{ mt: 3, width: '100%' }}>
           {message && <Alert severity="success">{message}</Alert>}
           {error && <Alert severity="error">{error}</Alert>}
@@ -74,6 +72,18 @@ const RegisterUser = () => {
             required
             fullWidth
           />
+          {/* --- New Email Field --- */}
+          <TextField
+            label="Enter email address"
+            name="email"
+            type="email"
+            autoComplete="email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+            fullWidth
+          />
+          {/* ----------------------- */}
           <TextField
             label="Enter password"
             name="password"

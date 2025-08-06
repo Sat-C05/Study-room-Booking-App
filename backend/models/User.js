@@ -7,14 +7,23 @@ const userSchema = new mongoose.Schema({
     unique: true, 
     trim: true 
   },
+  // --- New Field ---
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true,
+    lowercase: true,
+  },
+  // -----------------
   password: {
     type: String,
     required: true,
   },
   role: {
     type: String,
-    enum: ['user', 'admin'], // The role can only be one of these two values
-    default: 'user' // New users are always 'user' by default
+    enum: ['user', 'admin'],
+    default: 'user'
   }
 });
 

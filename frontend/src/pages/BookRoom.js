@@ -45,7 +45,6 @@ const BookRoom = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // --- THIS IS THE CORRECTED FUNCTION ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage('');
@@ -70,7 +69,7 @@ const BookRoom = () => {
     try {
       const res = await axios.post(`${process.env.REACT_APP_API_URL}/api/bookings`, { ...formData, room: id }, config);
       setMessage(res.data.message);
-      setFormData({ date: '', startTime: '', endTime: '' }); // Clear form on success
+      setFormData({ date: '', startTime: '', endTime: '' });
     } catch (err) {
       setError(err.response?.data?.message || 'An unexpected error occurred.');
     }
@@ -131,7 +130,8 @@ const BookRoom = () => {
             <Button type="submit" variant="contained" color="primary" fullWidth size="large" sx={{ mt: 2 }}>
               Confirm Booking
             </Button>
-            <Link component={RouterLink} to="/" align="center">Cancel</Link>
+            {/* This is the corrected line */}
+            <Link component={RouterLink} to="/dashboard" align="center">Cancel</Link>
           </Stack>
         </Grid>
       </Grid>

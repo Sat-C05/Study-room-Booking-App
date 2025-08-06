@@ -1,10 +1,10 @@
 import React, { useContext } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { jwtDecode } from 'jwt-decode';
 import { AppBar, Toolbar, Typography, Button, Stack } from '@mui/material';
 
 const Navbar = () => {
-  // Get the full user object from context
   const { token, user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -30,9 +30,11 @@ const Navbar = () => {
           {token && (
             <>
               <Button color="inherit" component={RouterLink} to="/bookings">Calendar</Button>
-              {/* Only show Admin button if user's role is 'admin' */}
               {user?.role === 'admin' && (
-                <Button color="inherit" component={RouterLink} to="/admin">Admin</Button>
+                <>
+                  <Button color="inherit" component={RouterLink} to="/admin">Admin</Button>
+                  <Button color="inherit" component={RouterLink} to="/reports">Reports</Button>
+                </>
               )}
             </>
           )}

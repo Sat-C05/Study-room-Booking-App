@@ -11,13 +11,15 @@ app.use(express.json());
 
 // Import Routes
 const roomRoutes = require('./routes/roomRoutes');
-const bookingRoutes = require('./routes/bookingRoutes'); // Confirms the correct file is loaded
+const bookingRoutes = require('./routes/bookingRoutes');
 const userRoutes = require('./routes/userRoutes');
+const reportRoutes = require('./routes/reportRoutes'); // Import the new report routes
 
 // Use Routes
 app.use('/api/rooms', roomRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/reports', reportRoutes); // Use the new report routes
 
 // Connect to DB and Start Server
 const PORT = process.env.PORT || 5000;
