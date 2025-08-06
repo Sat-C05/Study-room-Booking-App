@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { jwtDecode } from 'jwt-decode';
-import { AppBar, Toolbar, Typography, Button, Stack } from '@mui/material';
+import { AppBar, Toolbar, Typography, Button, Stack, Divider } from '@mui/material';
 
 const Navbar = () => {
   const { token, user, logout } = useContext(AuthContext);
@@ -21,11 +21,16 @@ const Navbar = () => {
         <Typography variant="h6" component={RouterLink} to={homeLink} sx={{ flexGrow: 1, color: 'inherit', textDecoration: 'none' }}>
           Study Room Booking
         </Typography>
-        <Stack direction="row" spacing={1} alignItems="center">
+        {/* Increased spacing from 1 to 2 */}
+        <Stack direction="row" spacing={2} alignItems="center">
           {user && (
-            <Typography sx={{ mr: 2 }}>
-              Welcome, {user.username}
-            </Typography>
+            <>
+              <Typography sx={{ mr: 1 }}>
+                Welcome, {user.username}
+              </Typography>
+              {/* Added a vertical divider */}
+              <Divider orientation="vertical" flexItem sx={{ bgcolor: 'rgba(255, 255, 255, 0.3)', mr: 1 }} />
+            </>
           )}
           {token && (
             <>
