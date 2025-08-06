@@ -1,50 +1,40 @@
 const express = require('express');
 const router = express.Router();
-const Booking = require('../models/booking');
-const User = require('../models/User');
+const Booking = require('../models/Booking');
+const auth = require('../middleware/auth'); // 1. Import the auth middleware
 
-// GET all bookings
+// GET all bookings (this route is public)
 router.get('/', async (req, res) => {
   try {
-    // This is the updated line. We are populating both room and user.
     const bookings = await Booking.find().populate('room').populate('user', 'username');
     res.json(bookings);
   } catch (error) {
-    console.error("Error fetching bookings:", error);
     res.status(500).json({ message: 'Failed to fetch bookings' });
   }
 });
 
-// POST a new booking
-router.post('/', async (req, res) => {
-  const { room, username, date, startTime, endTime } = req.body;
-
-  if (startTime >= endTime) {
-    return res.status(400).json({ message: 'End time must be after start time.' });
-  }
+// POST a new booking (this route is now protected)
+// 2. Add the 'auth' middleware here
+router.post('/', auth, async (req, res) => {
+  // We no longer get 'username' from the body
+  const { room, date, startTime, endTime } = req.body;
 
   try {
-    const foundUser = await User.findOne({ username: username });
-    if (!foundUser) {
-      return res.status(404).json({ message: 'User not found. Please create a user first.' });
-    }
+    // 3. We get the user's ID from the middleware instead
+    const userId = req.user.id;
 
     const existingBooking = await Booking.findOne({
-      room: room,
-      date: date,
-      $and: [
-        { startTime: { $lt: endTime } },
-        { endTime: { $gt: startTime } }
-      ]
+      room, date,
+      $and: [{ startTime: { $lt: endTime } }, { endTime: { $gt: startTime } }]
     });
 
     if (existingBooking) {
-      return res.status(409).json({ message: 'Conflict: This time slot is already booked.' });
+      return res.status(409).json({ message: 'Time slot already booked.' });
     }
 
     const newBooking = new Booking({
       room,
-      user: foundUser._id,
+      user: userId, // 4. Use the logged-in user's ID
       date,
       startTime,
       endTime
@@ -54,21 +44,16 @@ router.post('/', async (req, res) => {
     res.status(201).json({ message: 'Booking successful!' });
 
   } catch (error) {
-    console.error("Booking Error:", error);
-    res.status(500).json({ message: 'Server error while creating booking.' });
+    res.status(500).json({ message: 'Server error during booking.' });
   }
 });
 
-// DELETE a booking by ID
+// DELETE a booking by ID (this route is public for now, but could be protected)
 router.delete('/:id', async (req, res) => {
   try {
-    const booking = await Booking.findByIdAndDelete(req.params.id);
-    if (!booking) {
-      return res.status(404).json({ message: 'Booking not found.' });
-    }
+    await Booking.findByIdAndDelete(req.params.id);
     res.json({ message: 'Booking deleted successfully.' });
   } catch (error) {
-    console.error("Error deleting booking:", error);
     res.status(500).json({ message: 'Server error while deleting booking.' });
   }
 });

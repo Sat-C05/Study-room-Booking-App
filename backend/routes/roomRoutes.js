@@ -12,14 +12,25 @@ router.get('/', async (req, res) => {
   }
 });
 
+// --- THIS IS THE NEW ROUTE WE ARE ADDING ---
+// GET a single room by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const room = await Room.findById(req.params.id);
+    if (!room) {
+      return res.status(404).json({ message: 'Room not found' });
+    }
+    res.json(room);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching room details' });
+  }
+});
+// -----------------------------------------
+
 // POST (create) a new room
 router.post('/', async (req, res) => {
   try {
-    const newRoom = new Room({
-      name: req.body.name,
-      location: req.body.location,
-      capacity: req.body.capacity,
-    });
+    const newRoom = new Room(req.body);
     const savedRoom = await newRoom.save();
     res.status(201).json(savedRoom);
   } catch (error) {
@@ -30,11 +41,8 @@ router.post('/', async (req, res) => {
 // DELETE a room by ID
 router.delete('/:id', async (req, res) => {
   try {
-    const deletedRoom = await Room.findByIdAndDelete(req.params.id);
-    if (!deletedRoom) {
-      return res.status(404).json({ message: 'Room not found' });
-    }
-    res.json({ message: 'Room deleted successfully' });
+    await Room.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Room deleted' });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting room' });
   }

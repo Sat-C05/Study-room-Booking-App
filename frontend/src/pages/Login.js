@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import axios from 'axios';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
 import FormContainer from '../components/FormContainer';
 import {
   Typography,
@@ -10,33 +11,31 @@ import {
   Alert,
   Link,
   Paper,
-  Avatar,
-  Box
+  Avatar
 } from '@mui/material';
-import PersonAddIcon from '@mui/icons-material/PersonAdd'; // Register icon
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 
-const RegisterUser = () => {
+const Login = () => {
   const [formData, setFormData] = useState({ username: '', password: '' });
-  const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage('');
     setError('');
-    
-    axios.post(`${process.env.REACT_APP_API_URL}/api/users/register`, formData)
-      .then(res => {
-        setMessage(res.data.message);
-        setFormData({ username: '', password: '' });
-      })
-      .catch(err => {
-        setError(err.response?.data?.message || 'An error occurred.');
-      });
+    try {
+      const res = await axios.post(`${process.env.REACT_APP_API_URL}/api/users/login`, formData);
+      login(res.data.token);
+      // This is the corrected line:
+      navigate('/dashboard'); // Redirect to the dashboard after login
+    } catch (err) {
+      setError(err.response?.data?.message || 'Login failed.');
+    }
   };
 
   return (
@@ -52,20 +51,16 @@ const RegisterUser = () => {
           alignItems: 'center',
         }}
       >
-        {/* --- New Header Section --- */}
-        <Avatar sx={{ m: 1, bgcolor: 'accent.main' }}>
-          <PersonAddIcon />
+        <Avatar sx={{ m: 1, bgcolor: 'primary.main' }}>
+          <LockOutlinedIcon />
         </Avatar>
         <Typography component="h1" variant="h5">
-          Register
+          Sign In
         </Typography>
-        {/* ------------------------- */}
-
         <Stack as="form" onSubmit={handleSubmit} spacing={2} sx={{ mt: 3, width: '100%' }}>
-          {message && <Alert severity="success">{message}</Alert>}
           {error && <Alert severity="error">{error}</Alert>}
           <TextField
-            label="Enter new username"
+            label="Username"
             name="username"
             autoComplete="username"
             autoFocus
@@ -75,9 +70,10 @@ const RegisterUser = () => {
             fullWidth
           />
           <TextField
-            label="Enter password"
+            label="Password"
             name="password"
             type="password"
+            autoComplete="current-password"
             value={formData.password}
             onChange={handleChange}
             required
@@ -87,13 +83,13 @@ const RegisterUser = () => {
             type="submit" 
             variant="contained" 
             color="primary" 
-            fullWidth
+            fullWidth 
             sx={{ mt: 2, mb: 2 }}
           >
-            Create Account
+            Login
           </Button>
           <Typography align="center" variant="body2">
-            Already have an account? <Link component={RouterLink} to="/login" variant="body2">Login here</Link>
+            Don't have an account? <Link component={RouterLink} to="/register" variant="body2">Register here</Link>
           </Typography>
         </Stack>
       </Paper>
@@ -101,4 +97,4 @@ const RegisterUser = () => {
   );
 };
 
-export default RegisterUser;
+export default Login;
