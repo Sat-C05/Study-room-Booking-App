@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
+import { motion } from 'framer-motion'; // Import for animations
 import {
   Typography,
   Button,
@@ -12,9 +13,11 @@ import {
   Paper,
   Box,
   Grid,
-  CircularProgress
+  CircularProgress,
+  Divider
 } from '@mui/material';
 import MeetingRoomIcon from '@mui/icons-material/MeetingRoom';
+import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 
 const BookRoom = () => {
   const { id } = useParams();
@@ -26,6 +29,7 @@ const BookRoom = () => {
   const [formData, setFormData] = useState({ date: '', startTime: '', endTime: '' });
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -45,34 +49,55 @@ const BookRoom = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (e, suggestedTime = null) => {
+    if (e) e.preventDefault();
     setMessage('');
     setError('');
+    setSuggestions([]);
+
+    const bookingData = suggestedTime ? { ...formData, ...suggestedTime } : formData;
 
     if (!token) {
       navigate('/login');
       return;
     }
 
-    if (formData.endTime <= formData.startTime) {
+    if (bookingData.endTime <= bookingData.startTime) {
       setError('End time must be after start time.');
       return;
     }
 
-    const config = {
-      headers: {
-        'x-auth-token': token
-      }
-    };
+    const config = { headers: { 'x-auth-token': token } };
 
     try {
-      const res = await axios.post(`${process.env.REACT_APP_API_URL}/api/bookings`, { ...formData, room: id }, config);
+      const res = await axios.post(`${process.env.REACT_APP_API_URL}/api/bookings`, { ...bookingData, room: id }, config);
       setMessage(res.data.message);
       setFormData({ date: '', startTime: '', endTime: '' });
     } catch (err) {
-      setError(err.response?.data?.message || 'An unexpected error occurred.');
+      const errorMessage = err.response?.data?.message || 'An unexpected error occurred.';
+      setError(errorMessage);
+      if (err.response?.status === 409) {
+        fetchSuggestions(bookingData.startTime);
+      }
     }
+  };
+
+  const fetchSuggestions = async (requestedStartTime) => {
+    const config = { headers: { 'x-auth-token': token } };
+    try {
+      const res = await axios.post(`${process.env.REACT_APP_API_URL}/api/bookings/suggestions`, {
+        room: id,
+        date: formData.date,
+        requestedStartTime,
+      }, config);
+      setSuggestions(res.data);
+    } catch (err) {
+      console.error("Failed to fetch suggestions");
+    }
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    handleSubmit(null, suggestion);
   };
 
   if (isLoading) {
@@ -93,46 +118,54 @@ const BookRoom = () => {
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', color: 'primary.main', my: 3 }}>
               <MeetingRoomIcon sx={{ fontSize: 120 }} />
             </Box>
-            <Typography variant="body1">
-              <strong>Location:</strong> {room.location}
-            </Typography>
-            <Typography variant="body1">
-              <strong>Capacity:</strong> {room.capacity} people
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-              Please select your desired date and time to book this room. All bookings are for the current academic year.
-            </Typography>
+            <Typography variant="body1"><strong>Location:</strong> {room.location}</Typography>
+            <Typography variant="body1"><strong>Capacity:</strong> {room.capacity} people</Typography>
           </Stack>
         </Grid>
 
-        {/* Right Column: Booking Form */}
+        {/* Right Column: Form and Suggestions */}
         <Grid item xs={12} md={7}>
-          <Stack as="form" onSubmit={handleSubmit} spacing={2}>
-            <Typography variant="h5" component="h2" align="center">
-              Booking Details
-            </Typography>
-            {message && <Alert severity="success">{message}</Alert>}
-            {error && <Alert severity="error">{error}</Alert>}
-            
-            <TextField 
-              type="date" 
-              name="date" 
-              label="Booking Date"
-              value={formData.date} 
-              onChange={handleChange} 
-              required 
-              InputLabelProps={{ shrink: true }} 
-              inputProps={{ min: today }} 
-            />
-            <TextField label="Start Time" type="time" name="startTime" value={formData.startTime} onChange={handleChange} required InputLabelProps={{ shrink: true }} />
-            <TextField label="End Time" type="time" name="endTime" value={formData.endTime} onChange={handleChange} required InputLabelProps={{ shrink: true }} />
-            
-            <Button type="submit" variant="contained" color="primary" fullWidth size="large" sx={{ mt: 2 }}>
-              Confirm Booking
-            </Button>
-            {/* This is the corrected line */}
-            <Link component={RouterLink} to="/dashboard" align="center">Cancel</Link>
-          </Stack>
+          <Grid container spacing={4}>
+            {/* Form Section */}
+            <Grid item xs={12} md={suggestions.length > 0 ? 8 : 12}>
+              <Stack as="form" onSubmit={handleSubmit} spacing={2}>
+                <Typography variant="h5" component="h2" align="center">Booking Details</Typography>
+                {message && <Alert severity="success">{message}</Alert>}
+                {error && <Alert severity="error">{error}</Alert>}
+                
+                <TextField type="date" name="date" label="Booking Date" value={formData.date} onChange={handleChange} required InputLabelProps={{ shrink: true }} inputProps={{ min: today }} />
+                <TextField label="Start Time" type="time" name="startTime" value={formData.startTime} onChange={handleChange} required InputLabelProps={{ shrink: true }} />
+                <TextField label="End Time" type="time" name="endTime" value={formData.endTime} onChange={handleChange} required InputLabelProps={{ shrink: true }} />
+                
+                <Button type="submit" variant="contained" color="primary" fullWidth size="large" sx={{ mt: 2 }}>Confirm Booking</Button>
+                <Link component={RouterLink} to="/dashboard" align="center">Cancel</Link>
+              </Stack>
+            </Grid>
+
+            {/* Suggestions Section (appears on the side) */}
+            {suggestions.length > 0 && (
+              <Grid item xs={12} md={4}>
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <Stack spacing={2}>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <EventAvailableIcon color="action" />
+                      <Typography variant="h6">Alternatives:</Typography>
+                    </Stack>
+                    <Divider />
+                    {suggestions.map((s, index) => (
+                      <Button key={index} variant="outlined" onClick={() => handleSuggestionClick(s)}>
+                        {s.startTime} - {s.endTime}
+                      </Button>
+                    ))}
+                  </Stack>
+                </motion.div>
+              </Grid>
+            )}
+          </Grid>
         </Grid>
       </Grid>
     </Paper>
