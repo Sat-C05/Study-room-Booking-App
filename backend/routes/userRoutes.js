@@ -5,9 +5,9 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Booking = require('../models/Booking');
 const auth = require('../middleware/auth');
-const admin = require('../middleware/admin'); // Import the new admin middleware
+const admin = require('../middleware/admin');
 
-// GET /api/users - Now protected for admins only
+// GET /api/users - Fetches all users for the Admin Panel (Admin Only)
 router.get('/', [auth, admin], async (req, res) => {
   try {
     const users = await User.find({}, '-password');
@@ -18,21 +18,26 @@ router.get('/', [auth, admin], async (req, res) => {
   }
 });
 
-// POST /api/users/register (Public)
+// POST /api/users/register - Handles new user registration
 router.post('/register', async (req, res) => {
   try {
     const { username, email, password } = req.body;
     if (!username || !email || !password) {
       return res.status(400).json({ message: 'Please enter all fields.' });
     }
+    
+    // Restore the check for duplicate emails
     let user = await User.findOne({ email });
     if (user) {
       return res.status(400).json({ message: 'Email already in use.' });
     }
+
+    // Check for duplicate usernames
     user = await User.findOne({ username });
     if (user) {
       return res.status(400).json({ message: 'Username already exists.' });
     }
+
     user = new User({ username, email, password });
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(password, salt);
@@ -44,7 +49,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// POST /api/users/login (Public)
+// POST /api/users/login - Handles user login
 router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -78,7 +83,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// DELETE /api/users/:id - Now protected for admins only
+// DELETE /api/users/:id - Deletes a user and their bookings (Admin Only)
 router.delete('/:id', [auth, admin], async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);

@@ -3,8 +3,9 @@ const router = express.Router();
 const Booking = require('../models/Booking');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
+const admin = require('../middleware/admin');
 const nodemailer = require('nodemailer');
-const moment = require('moment-timezone'); // Use moment-timezone
+const moment = require('moment-timezone');
 
 // Nodemailer transporter setup
 const transporter = nodemailer.createTransport({
@@ -66,66 +67,66 @@ router.post('/', auth, async (req, res) => {
 });
 
 // DELETE a booking by ID
-router.delete('/:id', async (req, res) => {
-  // ... (code is unchanged)
+router.delete('/:id', [auth, admin], async (req, res) => {
+  try {
+    const booking = await Booking.findByIdAndDelete(req.params.id);
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found.' });
+    }
+    res.json({ message: 'Booking deleted successfully.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error while deleting booking.' });
+  }
 });
 
 // --- REVISED AI SUGGESTIONS ROUTE ---
 router.post('/suggestions', auth, async (req, res) => {
   const { room, date, requestedStartTime } = req.body;
-  const timezone = "America/New_York"; // Define a consistent timezone
+  const timezone = "America/New_York"; // Using a consistent timezone is crucial
 
   try {
     const existingBookings = await Booking.find({ room, date }).sort({ startTime: 'asc' });
 
-    const dayStartHour = 9;
-    const dayEndHour = 21;
-    const bookingDurationMinutes = 60;
+    const dayStartHour = 9;  // 9 AM
+    const dayEndHour = 21; // 9 PM
+    const bookingDurationMinutes = 60; // Suggest 1-hour slots
 
     const suggestions = [];
-    // Start checking from the user's requested time, rounded to the next 30-min interval
+    // Start checking from the user's requested time
     let checkTime = moment.tz(`${date}T${requestedStartTime}`, timezone);
-    if (checkTime.minute() > 0 && checkTime.minute() <= 30) {
-        checkTime.minute(30).second(0);
-    } else if (checkTime.minute() > 30) {
-        checkTime.add(1, 'hour').minute(0).second(0);
-    }
-
     const dayEnd = moment.tz(date, timezone).hour(dayEndHour).minute(0);
 
+    // Loop until we find 3 suggestions or run out of time in the day
     while (checkTime.isBefore(dayEnd) && suggestions.length < 3) {
       const potentialEndTime = moment(checkTime).add(bookingDurationMinutes, 'minutes');
-      
+
       if (potentialEndTime.isAfter(dayEnd)) {
-        break; // Don't suggest times that go past the end of the day
+        break; // Stop if the potential booking would end after the day is over
       }
 
       let isAvailable = true;
+      // Check this potential slot against all existing bookings
       for (const booking of existingBookings) {
         const bookingStart = moment.tz(`${date}T${booking.startTime}`, timezone);
         const bookingEnd = moment.tz(`${date}T${booking.endTime}`, timezone);
         
-        // Check for overlap
+        // If our potential slot overlaps with an existing booking, it's not available
         if (checkTime.isBefore(bookingEnd) && potentialEndTime.isAfter(bookingStart)) {
           isAvailable = false;
-          // Jump checkTime to the end of the conflicting booking to be more efficient
-          checkTime = bookingEnd;
-          if (checkTime.minute() > 0 && checkTime.minute() <= 30) {
-            checkTime.minute(30).second(0);
-          } else if (checkTime.minute() > 30) {
-            checkTime.add(1, 'hour').minute(0).second(0);
-          }
+          // To be efficient, jump our check to the end of the conflicting booking
+          checkTime = bookingEnd; 
           break;
         }
       }
 
       if (isAvailable) {
+        // If the slot was free, add it to our suggestions list
         suggestions.push({
           startTime: checkTime.format('HH:mm'),
           endTime: potentialEndTime.format('HH:mm'),
         });
-        // Move to the next potential slot
-        checkTime.add(bookingDurationMinutes, 'minutes');
+        // And move our check to the end of the slot we just found
+        checkTime = potentialEndTime;
       }
     }
 
@@ -135,6 +136,5 @@ router.post('/suggestions', auth, async (req, res) => {
     res.status(500).json({ message: 'Could not generate suggestions.' });
   }
 });
-
 
 module.exports = router;

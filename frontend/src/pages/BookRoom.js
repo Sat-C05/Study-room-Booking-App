@@ -2,7 +2,8 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useParams, Link as RouterLink, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
-import { motion } from 'framer-motion'; // Import for animations
+import FormContainer from '../components/FormContainer';
+import { motion } from 'framer-motion';
 import {
   Typography,
   Button,
@@ -111,7 +112,6 @@ const BookRoom = () => {
   return (
     <Paper elevation={3} sx={{ p: 4 }}>
       <Grid container spacing={5}>
-        {/* Left Column: Room Details */}
         <Grid item xs={12} md={5}>
           <Stack spacing={2}>
             <Typography variant="h4" component="h1">{room.name}</Typography>
@@ -123,10 +123,8 @@ const BookRoom = () => {
           </Stack>
         </Grid>
 
-        {/* Right Column: Form and Suggestions */}
         <Grid item xs={12} md={7}>
           <Grid container spacing={4}>
-            {/* Form Section */}
             <Grid item xs={12} md={suggestions.length > 0 ? 8 : 12}>
               <Stack as="form" onSubmit={handleSubmit} spacing={2}>
                 <Typography variant="h5" component="h2" align="center">Booking Details</Typography>
@@ -142,7 +140,6 @@ const BookRoom = () => {
               </Stack>
             </Grid>
 
-            {/* Suggestions Section (appears on the side) */}
             {suggestions.length > 0 && (
               <Grid item xs={12} md={4}>
                 <motion.div

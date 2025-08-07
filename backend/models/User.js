@@ -7,15 +7,13 @@ const userSchema = new mongoose.Schema({
     unique: true, 
     trim: true 
   },
-  // --- New Field ---
   email: {
     type: String,
     required: true,
-    unique: true,
+    unique: true, // This is the crucial rule we are restoring
     trim: true,
     lowercase: true,
   },
-  // -----------------
   password: {
     type: String,
     required: true,
