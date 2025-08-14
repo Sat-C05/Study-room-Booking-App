@@ -1,32 +1,34 @@
 import { createTheme } from '@mui/material/styles';
 
+// This is the new, professional monochromatic theme
 const theme = createTheme({
   palette: {
     mode: 'light',
     primary: {
-      // A strong, professional blue for main actions
-      main: '#1976d2', 
+      // A strong, dark charcoal for main actions and the Navbar
+      main: '#212121', 
     },
     secondary: {
-      // A clear red for destructive actions like delete
-      main: '#d32f2f', 
+      // A slightly desaturated red for delete actions to match the theme
+      main: '#c62828', 
     },
-    // Our new accent color for highlights and visual interest
+    // The "tint" - a cool, slate grey for accents and icons
     accent: {
-      main: '#00796b', // The deep teal you liked
+      main: '#607d8b',
       contrastText: '#ffffff',
     },
+    // The Navbar will now use the primary charcoal color
     navbar: {
-      main: '#0d47a1', // The deep blue for the top bar
+      main: '#212121',
     },
     background: {
-      // A very light grey for the page background
-      default: '#f4f6f8',
-      // Pure white for cards and paper elements to make them stand out
+      // A very light, soft grey for the page background
+      default: '#f5f5f5',
+      // Pure white for cards to make them pop
       paper: '#ffffff',
     },
     text: {
-      primary: '#212121', // Dark grey for primary text for readability
+      primary: '#212121', // Dark grey for primary text
       secondary: '#757575', // Lighter grey for secondary text
     },
   },
@@ -35,6 +37,24 @@ const theme = createTheme({
     h1: { fontWeight: 700 },
     h2: { fontWeight: 700 },
     h3: { fontWeight: 600 },
+  },
+  // We can add subtle overrides to components here
+  components: {
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8, // Slightly softer corners for all cards
+        },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8, // Match the paper's border radius
+          textTransform: 'none', // More modern button text
+        },
+      },
+    },
   },
 });
 

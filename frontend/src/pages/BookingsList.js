@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
 import { Calendar, momentLocalizer, Views } from 'react-big-calendar';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
@@ -8,9 +9,9 @@ import { Box, Typography, Alert, Paper, Stack, Divider } from '@mui/material';
 const localizer = momentLocalizer(moment);
 
 const BookingsList = () => {
+  const { t } = useTranslation();
   const [events, setEvents] = useState([]);
   const [error, setError] = useState('');
-  
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState(Views.MONTH);
 
@@ -35,12 +36,8 @@ const BookingsList = () => {
   return (
     <Paper elevation={3} sx={{ p: 3 }}>
       <Stack spacing={2}>
-        <Typography variant="h4" component="h1" align="center">
-          Bookings Calendar
-        </Typography>
-        
+        <Typography variant="h4" component="h1" align="center">{t('calendar_title')}</Typography>
         <Divider />
-
         <Box sx={{ height: '70vh' }}>
           <Calendar
             localizer={localizer}

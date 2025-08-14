@@ -1,37 +1,15 @@
 import React, { useState, useEffect, useContext, useMemo } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
-import {
-  Box,
-  Typography,
-  Button,
-  Stack,
-  TextField,
-  Alert,
-  Paper,
-  List,
-  ListItem,
-  ListItemText,
-  IconButton,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  Grid,
-  Divider,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem
-} from '@mui/material';
+import { useTranslation } from 'react-i18next';
+import { Box, Typography, Button, Stack, TextField, Alert, Paper, List, ListItem, ListItemText, IconButton, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Grid, Divider, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MeetingRoomIcon from '@mui/icons-material/MeetingRoom';
 import GroupIcon from '@mui/icons-material/Group';
 import BookOnlineIcon from '@mui/icons-material/BookOnline';
 
 const Admin = () => {
+  const { t } = useTranslation();
   const { user: loggedInUser, token } = useContext(AuthContext);
   const [isLoading, setIsLoading] = useState(true);
   const [openDialog, setOpenDialog] = useState(false);
@@ -42,7 +20,6 @@ const Admin = () => {
   const [roomFormData, setRoomFormData] = useState({ name: '', location: '', capacity: '' });
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-
   const [selectedLocation, setSelectedLocation] = useState('');
   const [isNewLocation, setIsNewLocation] = useState(false);
 
@@ -61,7 +38,7 @@ const Admin = () => {
           setUsers(usersRes.data);
           setBookings(bookingsRes.data);
         } catch (err) {
-          setError("Failed to load admin data. You may not have permission.");
+          setError("Failed to load admin data.");
         } finally {
           setIsLoading(false);
         }
@@ -141,14 +118,14 @@ const Admin = () => {
 
   return (
     <Stack spacing={4} sx={{ width: '100%' }}>
-      <Typography variant="h3" component="h1" align="center">Admin Panel</Typography>
+      <Typography variant="h3" component="h1" align="center">{t('admin_panel')}</Typography>
       {message && <Alert severity="success" onClose={clearMessages}>{message}</Alert>}
       {error && <Alert severity="error" onClose={clearMessages}>{error}</Alert>}
       
       <Paper elevation={2} sx={{ p: 3, borderRadius: 2 }}>
         <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
             <MeetingRoomIcon color="primary" />
-            <Typography variant="h5" component="h2">Manage Rooms</Typography>
+            <Typography variant="h5" component="h2">{t('admin_manage_rooms')}</Typography>
         </Stack>
         <Divider sx={{ mb: 3 }} />
         <Stack as="form" onSubmit={handleRoomCreate} spacing={2}>
@@ -188,7 +165,7 @@ const Admin = () => {
           <Paper elevation={2} sx={{ p: 3, height: '100%', borderRadius: 2 }}>
             <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
                 <GroupIcon color="accent" />
-                <Typography variant="h5" component="h2">Manage Users</Typography>
+                <Typography variant="h5" component="h2">{t('admin_manage_users')}</Typography>
             </Stack>
             <Divider sx={{ mb: 2 }} />
             <List>
@@ -210,7 +187,7 @@ const Admin = () => {
           <Paper elevation={2} sx={{ p: 3, height: '100%', borderRadius: 2 }}>
             <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
                 <BookOnlineIcon color="accent" />
-                <Typography variant="h5" component="h2">Manage Bookings</Typography>
+                <Typography variant="h5" component="h2">{t('admin_manage_bookings')}</Typography>
             </Stack>
             <Divider sx={{ mb: 2 }} />
             <List>

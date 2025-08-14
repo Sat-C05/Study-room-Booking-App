@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -23,6 +24,7 @@ ChartJS.register(
 );
 
 const Reports = () => {
+  const { t } = useTranslation();
   const [chartData, setChartData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -30,12 +32,7 @@ const Reports = () => {
 
   useEffect(() => {
     if (token) {
-      const config = {
-        headers: {
-          'x-auth-token': token
-        }
-      };
-      
+      const config = { headers: { 'x-auth-token': token } };
       axios.get(`${process.env.REACT_APP_API_URL}/api/reports/room-usage`, config)
         .then(res => {
           const data = res.data;
@@ -58,7 +55,7 @@ const Reports = () => {
           setIsLoading(false);
         })
         .catch(() => {
-          setError('Could not fetch report data. You may not have permission.');
+          setError('Could not fetch report data.');
           setIsLoading(false);
         });
     }
@@ -75,7 +72,7 @@ const Reports = () => {
   return (
     <Paper elevation={3} sx={{ p: 3 }}>
       <Typography variant="h4" component="h1" align="center" gutterBottom>
-        Room Usage Report
+        {t('reports_title')}
       </Typography>
       <Box sx={{ height: '60vh' }}>
         {chartData ? (
